@@ -1,0 +1,10 @@
+{
+  "name": "publisher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Shan Senanayake",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.624.0"
+  }
+}
