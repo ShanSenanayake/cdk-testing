@@ -4,4 +4,4 @@ import * as cdk from '@aws-cdk/core';
 import { GleerupsDevStack } from '../lib/gleerups-dev-stack';
 
 const app = new cdk.App();
-new GleerupsDevStack(app, 'GleerupsDevStack');
+new GleerupsDevStack(app, 'Shan-Kinesis-poc');
