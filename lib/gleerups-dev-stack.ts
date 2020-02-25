@@ -26,19 +26,29 @@ export class GleerupsDevStack extends cdk.Stack {
       eventBus: eventBridge,
       ruleName: 'All-eventBridge-events-to-kinesis', //Must satisfy [\.\-_A-Za-z0-9]+
       eventPattern: {
-        detail: {
-          filter: ["please don't filter me"]
-        }
+        source: ["dator"],
       }
     })
 
-    const restApi = new apigw.AwsIntegration({
-      service: "CloudwatchEvents",
-      action: "PutEvents",
+
+    const restApi = new apigw.RestApi(this, 'events api');
+    const eventIntegration = new apigw.AwsIntegration({
+      service: "events",
+      action: "events:PutEvents",
       options: {
-        credentialsRole: apigatewayRole
+        credentialsRole: apigatewayRole,
+        requestParameters: {
+          "integration.request.header.X-Amz-Target": "'AWSEvents.PutEvents'",
+          "integration.request.header.Content-Type": "'application/x-amz-json-1.1'" //Apparently need single quotes otherwise it won't work
+        } ,
+        requestTemplates: {
+          "application/json": '{"Entries":[{"DetailType":$input.json(\'$.type\'),"Detail":"$util.escapeJavaScript($input.json(\'$\'))","EventBusName":"${Token[TOKEN.122]}","Source":"dator"}]}'
+        }
       }
     })
+          const a =  '{"Entries":[{"DetailType":$input.json(\'$.type\'),"Detail":$util.escapeJavaScript($input.json(\'$\')),"EventBusName":"${Token[TOKEN.122]}","Source":"dator"}]}'
+
+    restApi.root.addMethod('POST', eventIntegration)
 
     const kinesisStream = new kinesis.Stream(this, 'KinesisStream')
     const lambdaFn =  new lambda.Function(this, 'KinesisConsumer', {
@@ -51,7 +61,7 @@ export class GleerupsDevStack extends cdk.Stack {
   kinesisStream.grantRead(lambdaFn)
   kinesisStream.grantReadWrite(eventRole);
   logGroup.grantWrite(eventRole)
-  restApi
+  events.EventBus.grantPutEvents(apigatewayRole);
 
   //Modify rules since resource does not exist yet: https://github.com/aws/aws-cdk/issues/2997
   const catchAllKinesisRuleResource = catchAllKinesisRule.node.defaultChild as events.CfnRule
