@@ -43,12 +43,34 @@ export class GleerupsDevStack extends cdk.Stack {
         } ,
         requestTemplates: {
           "application/json": '{"Entries":[{"DetailType":$input.json(\'$.type\'),"Detail":"$util.escapeJavaScript($input.json(\'$\'))","EventBusName":"${Token[TOKEN.122]}","Source":"dator"}]}'
-        }
+        },
+        integrationResponses: [
+          {
+            statusCode: "200"
+          },
+          {
+            statusCode: "500"
+          },
+          {
+            statusCode: "400"
+          }
+        ]
       }
     })
-          const a =  '{"Entries":[{"DetailType":$input.json(\'$.type\'),"Detail":$util.escapeJavaScript($input.json(\'$\')),"EventBusName":"${Token[TOKEN.122]}","Source":"dator"}]}'
 
-    restApi.root.addMethod('POST', eventIntegration)
+    restApi.root.addMethod('POST', eventIntegration, {
+      methodResponses: [
+        {
+          statusCode: "200"
+        },
+        {
+          statusCode: "500"
+        },
+        {
+          statusCode: "400"
+        }
+      ]
+    })
 
     const kinesisStream = new kinesis.Stream(this, 'KinesisStream')
     const lambdaFn =  new lambda.Function(this, 'KinesisConsumer', {
